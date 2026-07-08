@@ -66,5 +66,13 @@ async def log_requests(request: Request, call_next):  # type: ignore[no-untyped-
     )
     return response
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(_request: Request, exc: Exception):
+    logger.exception("Unhandled exception: %s", exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
 
 app.include_router(addresses_router.router, prefix="/api/v1")
