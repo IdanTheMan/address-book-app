@@ -17,3 +17,8 @@ def create_address(db: Session, data: AddressCreate) -> Address:
     db.refresh(address)
     logger.info("Created address id=%d", address.id)
     return address
+
+def get_addresses(db: Session, skip: int = 0, limit: int = 100) -> list[Address]:
+    """Return a paginated list of all addresses."""
+    logger.debug("Listing addresses (skip=%d, limit=%d)", skip, limit)
+    return db.query(Address).offset(skip).limit(limit).all()

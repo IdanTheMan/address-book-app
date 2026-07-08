@@ -31,3 +31,17 @@ def create_address(
     except IntegrityError as exc:
         logger.error("Integrity error creating address: %s", exc)
         raise HTTPException(status_code=400, detail="Data integrity error") from exc
+
+@router.get(
+    "/",
+    response_model=list[AddressResponse],
+    summary="List all addresses (paginated)",
+)
+def list_addresses(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Max records to return"),
+    db: Session = Depends(get_db),
+) -> list[AddressResponse]:
+    """Return a paginated list of all stored addresses."""
+    logger.info("GET /addresses?skip=%d&limit=%d", skip, limit)
+    return crud.get_addresses(db, skip=skip, limit=limit)
