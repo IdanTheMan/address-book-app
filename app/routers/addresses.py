@@ -86,3 +86,18 @@ def update_address(
     if updated is None:
         raise HTTPException(status_code=404, detail=f"Address {address_id} not found")
     return updated
+
+
+@router.delete(
+    "/{address_id}",
+    status_code=204,
+    summary="Delete an address",
+)
+def delete_address(
+    address_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    """Delete an address by its ID."""
+    logger.info("DELETE /addresses/%d", address_id)
+    if not crud.delete_address(db, address_id):
+        raise HTTPException(status_code=404, detail=f"Address {address_id} not found")

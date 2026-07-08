@@ -24,10 +24,10 @@ def get_addresses(db: Session, skip: int = 0, limit: int = 100) -> list[Address]
     return db.query(Address).offset(skip).limit(limit).all()
 
 
-def get_addresses(db: Session, skip: int = 0, limit: int = 100) -> list[Address]:
-    """Return a paginated list of all addresses."""
-    logger.debug("Listing addresses (skip=%d, limit=%d)", skip, limit)
-    return db.query(Address).offset(skip).limit(limit).all()
+def get_address(db: Session, address_id: int) -> Address | None:
+    """Return a single address by primary key, or None."""
+    logger.debug("Fetching address id=%d", address_id)
+    return db.query(Address).filter(Address.id == address_id).first()
 
 
 def update_address(
@@ -47,3 +47,17 @@ def update_address(
     db.refresh(address)
     logger.info("Updated address id=%d", address_id)
     return address
+
+
+def delete_address(db: Session, address_id: int) -> bool:
+    """Delete an address. Returns True on success, False if not found."""
+    logger.info("Deleting address id=%d", address_id)
+    address = get_address(db, address_id)
+    if address is None:
+        logger.warning("Address id=%d not found — delete skipped", address_id)
+        return False
+
+    db.delete(address)
+    db.commit()
+    logger.info("Deleted address id=%d", address_id)
+    return True
