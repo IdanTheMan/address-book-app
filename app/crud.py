@@ -22,3 +22,9 @@ def get_addresses(db: Session, skip: int = 0, limit: int = 100) -> list[Address]
     """Return a paginated list of all addresses."""
     logger.debug("Listing addresses (skip=%d, limit=%d)", skip, limit)
     return db.query(Address).offset(skip).limit(limit).all()
+
+
+def get_addresses(db: Session, skip: int = 0, limit: int = 100) -> list[Address]:
+    """Return a paginated list of all addresses."""
+    logger.debug("Listing addresses (skip=%d, limit=%d)", skip, limit)
+    return db.query(Address).offset(skip).limit(limit).all()

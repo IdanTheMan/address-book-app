@@ -45,3 +45,19 @@ def list_addresses(
     """Return a paginated list of all stored addresses."""
     logger.info("GET /addresses?skip=%d&limit=%d", skip, limit)
     return crud.get_addresses(db, skip=skip, limit=limit)
+
+@router.get(
+    "/{address_id}",
+    response_model=AddressResponse,
+    summary="Get a single address by ID",
+)
+def get_address(
+    address_id: int,
+    db: Session = Depends(get_db),
+) -> AddressResponse:
+    """Retrieve a single address by its ID."""
+    logger.info("GET /addresses/%d", address_id)
+    address = crud.get_address(db, address_id)
+    if address is None:
+        raise HTTPException(status_code=404, detail=f"Address {address_id} not found")
+    return address
