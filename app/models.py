@@ -1,3 +1,5 @@
+"""SQLAlchemy ORM models."""
+
 from datetime import datetime
 
 from sqlalchemy import DateTime, Float, String, func
@@ -7,6 +9,7 @@ from app.database import Base
 
 
 class Address(Base):
+    """A physical address with geographic coordinates."""
     __tablename__ = "addresses"
     id: Mapped[int] = mapped_column(primary_key=True)
     street: Mapped[str] = mapped_column(String(255))

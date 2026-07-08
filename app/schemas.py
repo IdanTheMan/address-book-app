@@ -1,9 +1,13 @@
+"""Pydantic schemas for request validation and response serialization."""
+
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 class AddressCreate(BaseModel):
+    """Partial update — only include the fields you want to change."""
+
     street: str = Field(..., min_length=1, max_length=255, description="Street address")
     city: str = Field(..., min_length=1, max_length=100, description="City name")
     state: Optional[str] = Field(None, max_length=100, description="State or province")
@@ -14,6 +18,8 @@ class AddressCreate(BaseModel):
 
 
 class AddressResponse(BaseModel):
+    """Full address representation returned by the API."""
+
     id: int
     street: str
     city: str

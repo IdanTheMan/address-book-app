@@ -1,4 +1,4 @@
-
+"""Application entry-point: logging, middleware, lifespan, router wiring."""
 
 import logging
 import sys
@@ -13,6 +13,7 @@ from app.routers import addresses as addresses_router
 
 
 def _configure_logging() -> None:
+    """Attach a formatted StreamHandler to the root logger."""
     root = logging.getLogger()
 
     root.handlers.clear()
@@ -28,6 +29,7 @@ def _configure_logging() -> None:
     root.addHandler(handler)
     root.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
 
+    # Quiet noisy third-party loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 
@@ -36,8 +38,12 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    """Create database tables on startup; log shutdown."""
+    logger.info("Starting %s", settings.APP_NAME)
     Base.metadata.create_all(bind=engine)
+    logger.info("Database tables ensured")
     yield
+    logger.info("Shutting down %s", settings.APP_NAME)
 
 app = FastAPI(
     title=settings.APP_NAME,

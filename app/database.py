@@ -1,3 +1,5 @@
+"""SQLAlchemy engine, session factory, and FastAPI dependency."""
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
@@ -15,10 +17,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class Base(DeclarativeBase):
+    """Base class that all ORM models inherit from."""
     pass
 
 
 def get_db() -> Generator[Session, None, None]:
+    """Yield a database session and guarantee it is closed after the request."""
     db = SessionLocal()
     try:
         yield db
