@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import crud
 from app.database import get_db
-from app.schemas import AddressCreate, AddressResponse, AddressUpdate
+from app.schemas import AddressCreate, AddressResponse, AddressUpdate, AddressWithDistance
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +48,41 @@ def list_addresses(
     logger.info("GET /addresses?skip=%d&limit=%d", skip, limit)
     return crud.get_addresses(db, skip=skip, limit=limit)
 
+@router.get(
+    "/nearby",
+    response_model=list[AddressWithDistance],
+    summary="Find addresses within a radius",
+)
+def search_nearby(
+    latitude: float = Query(..., ge=-90, le=90, description="Centre latitude"),
+    longitude: float = Query(..., ge=-180, le=180, description="Centre longitude"),
+    distance_km: float = Query(
+        ..., gt=0, le=40_075, description="Search radius in kilometres"
+    ),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """Return addresses within the given radius of the specified coordinates."""
+    logger.info(
+        "GET /addresses/nearby?lat=%.4f&lon=%.4f&dist=%.1f",
+        latitude, longitude, distance_km,
+    )
+    results = crud.get_nearby_addresses(db, latitude, longitude, distance_km)
+    return [
+        {
+            "id": addr.id,
+            "street": addr.street,
+            "city": addr.city,
+            "state": addr.state,
+            "postal_code": addr.postal_code,
+            "country": addr.country,
+            "latitude": addr.latitude,
+            "longitude": addr.longitude,
+            "created_at": addr.created_at,
+            "updated_at": addr.updated_at,
+            "distance_km": round(km, 2),
+        }
+        for addr, km in results
+    ]
 
 @router.get(
     "/{address_id}",
@@ -101,3 +136,5 @@ def delete_address(
     logger.info("DELETE /addresses/%d", address_id)
     if not crud.delete_address(db, address_id):
         raise HTTPException(status_code=404, detail=f"Address {address_id} not found")
+    
+

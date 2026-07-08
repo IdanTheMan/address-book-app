@@ -49,3 +49,11 @@ class AddressResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AddressWithDistance(AddressResponse):
+    """Extends AddressResponse with the geodesic distance from a search point."""
+
+    distance_km: float = Field(
+        ..., description="Distance from the search centre in kilometres"
+    )
