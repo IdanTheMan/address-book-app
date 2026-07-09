@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/addresses", tags=["addresses"])
 
 
+# ---------------------------------------------------------------------------
+# Create
+# ---------------------------------------------------------------------------
+
 @router.post(
     "/",
     response_model=AddressResponse,
@@ -34,6 +38,10 @@ def create_address(
         raise HTTPException(status_code=400, detail="Data integrity error") from exc
 
 
+# ---------------------------------------------------------------------------
+# List
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/",
     response_model=list[AddressResponse],
@@ -47,6 +55,10 @@ def list_addresses(
     """Return a paginated list of all stored addresses."""
     logger.info("GET /addresses?skip=%d&limit=%d", skip, limit)
     return crud.get_addresses(db, skip=skip, limit=limit)
+
+# ---------------------------------------------------------------------------
+# Nearby search  (must be declared before /{address_id})
+# ---------------------------------------------------------------------------
 
 @router.get(
     "/nearby",
@@ -84,6 +96,11 @@ def search_nearby(
         for addr, km in results
     ]
 
+
+# ---------------------------------------------------------------------------
+# Read one
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/{address_id}",
     response_model=AddressResponse,
@@ -100,6 +117,10 @@ def get_address(
         raise HTTPException(status_code=404, detail=f"Address {address_id} not found")
     return address
 
+
+# ---------------------------------------------------------------------------
+# Update
+# ---------------------------------------------------------------------------
 
 @router.put(
     "/{address_id}",
@@ -123,6 +144,10 @@ def update_address(
     return updated
 
 
+# ---------------------------------------------------------------------------
+# Delete
+# ---------------------------------------------------------------------------
+
 @router.delete(
     "/{address_id}",
     status_code=204,
@@ -136,5 +161,3 @@ def delete_address(
     logger.info("DELETE /addresses/%d", address_id)
     if not crud.delete_address(db, address_id):
         raise HTTPException(status_code=404, detail=f"Address {address_id} not found")
-    
-

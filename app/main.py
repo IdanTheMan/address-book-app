@@ -12,6 +12,10 @@ from app.database import Base, engine
 from app.routers import addresses as addresses_router
 
 
+# ---------------------------------------------------------------------------
+# Logging — configured manually to avoid basicConfig conflicts on Windows
+# ---------------------------------------------------------------------------
+
 def _configure_logging() -> None:
     """Attach a formatted StreamHandler to the root logger."""
     root = logging.getLogger()
@@ -36,6 +40,10 @@ def _configure_logging() -> None:
 _configure_logging()
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Lifespan (startup / shutdown)
+# ---------------------------------------------------------------------------
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     """Create database tables on startup; log shutdown."""
@@ -45,12 +53,18 @@ async def lifespan(_app: FastAPI):
     yield
     logger.info("Shutting down %s", settings.APP_NAME)
 
+# ---------------------------------------------------------------------------
+# Application
+# ---------------------------------------------------------------------------
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="A minimal address-book API.",
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# --- Middleware: log every request / response with timing ------------------
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):  # type: ignore[no-untyped-def]
@@ -66,6 +80,8 @@ async def log_requests(request: Request, call_next):  # type: ignore[no-untyped-
     )
     return response
 
+# --- Global exception handler for unhandled errors ------------------------
+
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(_request: Request, exc: Exception):
     logger.exception("Unhandled exception: %s", exc)
@@ -74,5 +90,13 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
         content={"detail": "Internal server error"},
     )
 
+# --- Routers --------------------------------------------------------------
 
 app.include_router(addresses_router.router, prefix="/api/v1")
+
+# --- Health check ---------------------------------------------------------
+
+@app.get("/health", tags=["health"], summary="Health check")
+def health_check() -> dict[str, str]:
+    """Simple liveness probe for load balancers and orchestrators."""
+    return {"status": "healthy"}
